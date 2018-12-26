@@ -1,3 +1,5 @@
+execfile('tools.py')
+
 from sklearn import datasets
 import numpy as np
 
@@ -19,27 +21,24 @@ sc.fit(X_train)
 X_train_std = sc.transform(X_train)
 X_test_std  = sc.transform(X_test)
 
-from sklearn.linear_model import Perceptron
+X_train_01_subset = X_train[(y_train == 0) | (y_train == 1)]
+y_train_01_subset = y_train[(y_train == 0) | (y_train == 1)]
+lrgd = LogisticRegressionGD(eta=0.05, n_iter=1000, random_state=1)
+lrgd.fit(X_train_01_subset, y_train_01_subset)
+plot_decision_regions(X=X_train_01_subset, y=y_train_01_subset, classifier=lrgd)
+plt.xlabel('petal length [standardized]')
+plt.ylabel('petal width [standardized]')
+plt.legend(loc='upper left')
+plt.show()
 
-ppn = Perceptron(n_iter=40, eta0=0.1, random_state=1)
-ppn.fit(X_train_std, y_train)
-y_pred = ppn.predict(X_test_std)
-print('Misclassified samples: %d' %(y_test != y_pred).sum())
 
-from sklearn.metrics import accuracy_score
-print('Accuracy: %.2f' %accuracy_score(y_test,y_pred))
-print('Accuracy: %.2f' %ppn.score(X_test_std,y_test))
-
-
-from matplotlib.colors import ListedColormap
-import matplotlib.pyplot as plt
-
+# Now using Scikit-Learn, which can run on ALL the classes:
+from sklearn.linear_model import LogisticRegression
+lr = LogisticRegression(C=100.0, random_state=1)
+lr.fit(X_train_std, y_train)
 X_combined_std = np.vstack((X_train_std, X_test_std))
 y_combined = np.hstack((y_train, y_test))
-plot_decision_regions(X=X_combined_std,
-                       y=y_combined,
-                       classifier=ppn, 
-                       test_idx=range(105, 150))
+plot_decision_regions(X_combined_std, y_combined, classifier=lr, test_idx=range(105, 150))
 plt.xlabel('petal length [standardized]')
 plt.ylabel('petal width [standardized]')
 plt.legend(loc='upper left')
