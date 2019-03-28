@@ -96,3 +96,27 @@ plt.ylabel('Accuracy')
 plt.legend(loc='lower right')
 plt.ylim([0.8, 1.0])
 plt.show()
+
+
+# Grid search
+from sklearn.model_selection import GridSearchCV
+from sklearn.svm import SVC
+pipe_svc = make_pipeline(StandardScaler(), SVC(random_state=1))
+param_range = [0.0001, 0.001, 0.01, 0.1,1.0, 10.0, 100.0, 1000.0]
+param_grid = [{'svc__C': param_range,
+                'svc__kernel': ['linear']},
+               {'svc__C': param_range,
+                'svc__gamma': param_range,
+                'svc__kernel': ['rbf']}]
+gs = GridSearchCV(estimator=pipe_svc, param_grid=param_grid, scoring='accuracy', cv=10, n_jobs=-1)
+gs = gs.fit(X_train, y_train)
+print(gs.best_score_)
+print(gs.best_params_)
+
+clf = gs.best_estimator_
+clf.fit(X_train, y_train)
+print('Test accuracy: %.3f' % clf.score(X_test, y_test))
+
+gs = GridSearchCV(estimator=pipe_svc, param_grid=param_grid, scoring='accuracy', cv=2)
+scores = cross_val_score(gs, X_train, y_train, scoring='accuracy', cv=5)
+print('CV accuracy: %.3f +/- %.3f' % (np.mean(scores), np.std(scores)))
